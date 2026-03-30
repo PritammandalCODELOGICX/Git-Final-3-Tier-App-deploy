@@ -1,0 +1,46 @@
+name: Push Frontend image to Image registry
+on:
+  push:
+    branches: ["main"]
+    paths:
+      - 'frontend/**'
+env:
+  REGISTRY: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
+  IMG_NAME: ${{ secrets.FRONTEND_IMG }}
+jobs:
+  push_to_registry:
+    name: Build and Push Image to Registry
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+      contents: read
+      attestations: write
+      id-token: write
+    steps:
+      - name: checkout the repository
+        uses: actions/checkout@v4
+      - name: setup docker buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+      - name: Build & push the image
+        id: pushbuild
+        uses: docker/build-push-action@v6
+        with:
+          context: ./frontend
+          file: ./frontend/Dockerfile
+          push: true
+          tags: ${{ env.REGISTRY }}/${{ env.IMG_NAME }}:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+  deploy:
+    needs: push_to_registry
+    uses: ./.github/workflows/cd-frontend.yaml
+    secrets: inherit

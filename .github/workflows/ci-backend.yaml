@@ -37,7 +37,7 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
-      - name: Build & push the image1
+      - name: Build & push the image
         id: pushbuild
         uses: docker/build-push-action@v6
         with:

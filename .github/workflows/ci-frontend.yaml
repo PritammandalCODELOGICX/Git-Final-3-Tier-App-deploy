@@ -2,8 +2,6 @@ name: Push Frontend image to Image registry
 on:
   push:
     branches: ["main"]
-    paths:
-      - 'frontend/**'
 env:
   REGISTRY: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
   IMG_NAME: ${{ secrets.FRONTEND_IMG }}
